@@ -58,9 +58,9 @@ compile() { # name defines refs-file sources-file
 
 # 1) uGUI (UnityEngine.UI) from the editor's built-in package
 engine_refs > "$OUT/engine.rsp"
-find "$UGUI/Runtime" -name '*.cs' -not -path '*/TMP/*' -not -path '*/Editor/*' -not -path '*/Tests/*' > "$OUT/ugui.src"
+find "$UGUI/Runtime/UGUI" -name '*.cs' > "$OUT/ugui.src"
 compile UnityEngine.UI "$DEFINES" "$OUT/engine.rsp" "$OUT/ugui.src"
-echo "::error title=RESULT ugui-info::files=$(wc -l < "$OUT/ugui.src") dll=$(stat -c %s "$OUT/UnityEngine.UI.dll" 2>/dev/null) sample=$(head -3 "$OUT/ugui.src" | tr '\n' ' ') asmdefs=$(find "$UGUI" -name '*.asmdef' | sed "s#$UGUI/##" | tr '\n' ' ') grepdef=$(grep -rhoE '^#if [A-Z_]+' "$UGUI/Runtime" --include=*.cs | sort | uniq -c | sort -rn | head -5 | tr '\n' ' ')"
+echo "ugui files: $(wc -l < "$OUT/ugui.src")"
 
 # 2) Game runtime scripts (Assembly-CSharp)
 { cat "$OUT/engine.rsp"; echo "-r:$OUT/UnityEngine.UI.dll"; } > "$OUT/game.rsp"
