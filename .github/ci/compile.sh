@@ -34,7 +34,6 @@ engine_refs() {
 
 editor_refs() {
   for f in "$MANAGED"/UnityEngine/*.dll; do echo "-r:$f"; done
-  [ -f "$MANAGED/UnityEditor.dll" ] && echo "-r:$MANAGED/UnityEditor.dll"
   echo "-r:$NETSTD"
 }
 
