@@ -2,7 +2,8 @@
 # Compiles every C# script against the real Unity engine/editor assemblies inside a GameCI
 # Unity editor image. No Unity license is needed because Unity itself is never launched;
 # only its bundled C# compiler and reference DLLs are used.
-set -euo pipefail
+set -uo pipefail
+note(){ echo "::error title=ci::$*"; }
 
 PROJECT="${1:-/project}"
 OUT="$PROJECT/.ci/out"
@@ -10,18 +11,16 @@ mkdir -p "$OUT"
 
 EDITOR_DATA="$(dirname "$(readlink -f "$(command -v unity-editor 2>/dev/null || echo /opt/unity/Editor/Unity)")")/Data"
 [ -d "$EDITOR_DATA" ] || EDITOR_DATA=/opt/unity/Editor/Data
-echo "Editor data: $EDITOR_DATA"
+note "Editor data: $EDITOR_DATA ($(ls $EDITOR_DATA | tr '\n' ' ' | head -c 600))"
 
 DOTNET="$(find "$EDITOR_DATA" -maxdepth 3 -type f -name dotnet | head -n1)"
 CSC="$(find "$EDITOR_DATA" -type f -name csc.dll -path '*Roslyn*' | head -n1)"
-echo "dotnet: $DOTNET"
-echo "csc:    $CSC"
+note "dotnet=$DOTNET csc=$CSC"
 
 MANAGED="$EDITOR_DATA/Managed"
 NETSTD="$(find "$EDITOR_DATA/NetStandard" -type f -path '*ref/2.1.0/netstandard.dll' | head -n1)"
 UGUI="$(find "$EDITOR_DATA" -type d -path '*BuiltInPackages/com.unity.ugui' | head -n1)"
-echo "netstandard: $NETSTD"
-echo "ugui: $UGUI"
+note "netstandard=$NETSTD ugui=$UGUI"
 
 DEFINES="UNITY_6000_0_OR_NEWER;UNITY_2023_1_OR_NEWER;UNITY_2022_3_OR_NEWER;UNITY_2021_3_OR_NEWER;UNITY_2020_3_OR_NEWER;UNITY_2019_4_OR_NEWER;UNITY_5_6_OR_NEWER;UNITY_5_3_OR_NEWER;UNITY_64;UNITY_STANDALONE;UNITY_STANDALONE_LINUX;PLATFORM_STANDALONE;NET_STANDARD_2_0;NET_STANDARD_2_1;NET_STANDARD;CSHARP_7_3_OR_NEWER;ENABLE_UNITYEVENTS;ENABLE_LEGACY_INPUT_MANAGER;PACKAGE_PHYSICS2D;PACKAGE_PHYSICS;PACKAGE_ANIMATION;PACKAGE_TILEMAP"
 
@@ -47,9 +46,10 @@ compile() { # name defines refs-file sources-file
     -define:"$defines" -out:"$OUT/$name.dll" @"$refs" @"$srcs" > "$OUT/$name.log" 2>&1
   local rc=$?
   set -e
-  grep -E "error|warning CS0(108|114|162|168|219)" "$OUT/$name.log" | sed "s#$PROJECT/##" | head -n 300 || true
+  grep -E "error" "$OUT/$name.log" | sed "s#$PROJECT/##" | head -n 45 | while IFS= read -r l; do echo "::error title=$name::$l"; done
+  [ -s "$OUT/$name.log" ] && [ $rc -ne 0 ] && ! grep -q error "$OUT/$name.log" && echo "::error title=$name::$(head -c 800 "$OUT/$name.log" | tr '\n' ' ')"
   echo "::endgroup::"
-  if [ $rc -ne 0 ]; then echo "FAILED: $name"; return 1; fi
+  if [ $rc -ne 0 ]; then note "FAILED: $name"; exit 1; fi
   echo "OK: $name"
 }
 

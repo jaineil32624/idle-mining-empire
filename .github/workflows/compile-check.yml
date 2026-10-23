@@ -18,5 +18,5 @@ jobs:
         run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL || true
       - name: Compile with Unity's compiler
         run: |
-          docker run --rm -v "$PWD:/project" unityci/editor:ubuntu-6000.0.47f1-base-3 \
-            bash /project/.github/ci/compile.sh /project
+          docker run --rm --entrypoint bash -v "$PWD:/project" unityci/editor:ubuntu-6000.0.47f1-base-3 \
+            /project/.github/ci/compile.sh /project || { echo "::error title=docker::exit $?"; exit 1; }
