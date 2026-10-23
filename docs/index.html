@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Idle Mining Empire</title>
+<style>
+  :root { --bg:#0b0d1a; --panel:#151a2e; --gold:#ffcc33; --text:#eef0ff; --dim:#a7accb; }
+  * { box-sizing: border-box; }
+  body { margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center;
+         background: radial-gradient(circle at 50% 0%, #2a2350 0%, var(--bg) 60%); color:var(--text);
+         font: 17px/1.55 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; padding:16px; }
+  main { max-width: 720px; width:100%; background:var(--panel); border:2px solid rgba(255,204,51,.35);
+         border-radius:22px; padding:36px 32px; box-shadow:0 20px 60px rgba(0,0,0,.5); }
+  h1 { margin:0 0 6px; color:var(--gold); font-size:clamp(30px,6vw,46px); letter-spacing:.5px; }
+  .tag { color:var(--dim); margin:0 0 24px; }
+  .status { background:#1f2642; border-radius:14px; padding:16px 18px; margin:20px 0; }
+  .status b { color:var(--gold); }
+  ol { padding-left:22px; } li { margin:6px 0; }
+  code { background:#0b0d1a; padding:2px 7px; border-radius:6px; color:#9fe8ff; }
+  a.btn { display:inline-block; margin-top:14px; background:var(--gold); color:#2a1b00; font-weight:700;
+          text-decoration:none; padding:12px 20px; border-radius:12px; }
+  .ores { display:flex; gap:8px; margin:18px 0 4px; flex-wrap:wrap; }
+  .ores span { width:22px; height:22px; border-radius:6px; transform:rotate(45deg); }
+</style>
+</head>
+<body>
+<main>
+  <h1>⛏️ Idle Mining Empire</h1>
+  <p class="tag">A 2D idle mining tycoon made in Unity: mine, sell, upgrade, automate, dig to the Core, Rebirth, and descend the endless Abyss.</p>
+  <div class="ores">
+    <span style="background:#9a9a9e"></span><span style="background:#d9773b"></span><span style="background:#ffc61a"></span>
+    <span style="background:#21c46b"></span><span style="background:#e0115f"></span><span style="background:#8fe9ff"></span>
+    <span style="background:#7cfc00"></span><span style="background:#ff5cf0"></span><span style="background:#7b68ee"></span>
+    <span style="background:#1e90ff"></span><span style="background:#ff4500"></span>
+  </div>
+  <div class="status">
+    <b>The browser version hasn't been published yet.</b> This page is replaced by the playable game as soon as a WebGL build is pushed.
+  </div>
+  <p>To publish it (about 5 minutes):</p>
+  <ol>
+    <li>Open the project in <b>Unity Hub</b> with Unity 6 (with the <b>WebGL Build Support</b> module).</li>
+    <li>In Unity's menu bar choose <code>Idle Mining Empire &gt; Build &gt; WebGL</code>. It builds into this <code>docs</code> folder.</li>
+    <li>Commit and push. GitHub Actions deploys it here automatically.</li>
+  </ol>
+  <a class="btn" href="https://github.com/jaineil32624/idle-mining-empire">View the code on GitHub</a>
+</main>
+</body>
+</html>

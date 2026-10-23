@@ -1,0 +1,4 @@
+<linker>
+  <!-- Keep all game types/fields so JSON saves and ScriptableObjects survive High code stripping (WebGL/Android). -->
+  <assembly fullname="Assembly-CSharp" preserve="all"/>
+</linker>

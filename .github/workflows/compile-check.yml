@@ -1,0 +1,22 @@
+name: Compile check
+
+# Compiles all game + editor scripts against real Unity 6 assemblies on every push.
+# Needs no Unity license (Unity is never launched, only its compiler and DLLs are used).
+
+on:
+  push:
+    paths: ["Assets/**/*.cs", ".github/ci/**", ".github/workflows/compile-check.yml"]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  compile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Free disk space for the Unity image
+        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL || true
+      - name: Compile with Unity's compiler
+        run: |
+          docker run --rm -v "$PWD:/project" unityci/editor:ubuntu-6000.0.47f1-base-3 \
+            bash /project/.github/ci/compile.sh /project

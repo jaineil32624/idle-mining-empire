@@ -1,0 +1,86 @@
+name: Unity cloud build (WebGL + Windows + Android)
+
+# Optional: builds the game on GitHub's servers and deploys WebGL to GitHub Pages.
+# Requires repository secrets UNITY_LICENSE, UNITY_EMAIL and UNITY_PASSWORD
+# (see README > "Automatic cloud builds"). Without them this workflow skips itself.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ["Assets/**", "Packages/**", "ProjectSettings/**"]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    outputs:
+      enabled: ${{ steps.c.outputs.enabled }}
+    steps:
+      - id: c
+        env:
+          L: ${{ secrets.UNITY_LICENSE }}
+        run: |
+          if [ -n "$L" ]; then echo "enabled=true" >> "$GITHUB_OUTPUT"; else echo "enabled=false" >> "$GITHUB_OUTPUT"; echo "No UNITY_LICENSE secret - skipping cloud build."; fi
+
+  build:
+    needs: check
+    if: needs.check.outputs.enabled == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: WebGL
+            method: IdleMiningEmpire.EditorTools.BuildTools.BuildWebGL
+            output: docs
+          - platform: StandaloneWindows64
+            method: IdleMiningEmpire.EditorTools.BuildTools.BuildWindows
+            output: Builds/Windows
+          - platform: Android
+            method: IdleMiningEmpire.EditorTools.BuildTools.BuildAndroid
+            output: Builds/Android
+    steps:
+      - uses: actions/checkout@v4
+      - name: Free disk space
+        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL || true
+      - uses: actions/cache@v4
+        with:
+          path: Library
+          key: Library-${{ matrix.platform }}-${{ hashFiles('Packages/manifest.json') }}
+          restore-keys: Library-${{ matrix.platform }}-
+      - uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          targetPlatform: ${{ matrix.platform }}
+          buildMethod: ${{ matrix.method }}
+          unityVersion: auto
+      - uses: actions/upload-artifact@v4
+        with:
+          name: IdleMiningEmpire-${{ matrix.platform }}
+          path: ${{ matrix.output }}
+
+  deploy-pages:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: IdleMiningEmpire-WebGL
+          path: site
+      - run: touch site/.nojekyll
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - id: deployment
+        uses: actions/deploy-pages@v4

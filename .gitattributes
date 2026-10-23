@@ -1,0 +1,24 @@
+* text=auto
+
+*.cs diff=csharp text eol=lf
+*.md text eol=lf
+*.json text eol=lf
+*.yml text eol=lf
+*.xml text eol=lf
+
+# Unity YAML
+*.unity text merge=unityyamlmerge eol=lf
+*.prefab text merge=unityyamlmerge eol=lf
+*.asset text merge=unityyamlmerge eol=lf
+*.meta text merge=unityyamlmerge eol=lf
+*.mat text merge=unityyamlmerge eol=lf
+
+# WebGL build output
+*.wasm binary
+*.data binary
+*.gz binary
+*.br binary
+*.unityweb binary
+*.png binary
+*.jpg binary
+*.ico binary
