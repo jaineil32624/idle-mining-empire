@@ -154,7 +154,7 @@ namespace IdleMiningEmpire
             if (Input2D.MineHeld)
             {
                 idleTimer = 0;
-                if (target == null || target.Dead) target = gm.Mining.NearestRock(transform.position.x, gm.Stat(StatType.MineRange) * 2.5f);
+                if (target == null || target.Dead) target = gm.Mining.NearestRock(transform.position.x, (float)gm.Stat(StatType.MineRange) * 2.5f);
             }
 
             if (Input2D.SellDown) gm.UI.SellPressed();
