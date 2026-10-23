@@ -11,16 +11,16 @@ mkdir -p "$OUT"
 
 EDITOR_DATA="$(dirname "$(readlink -f "$(command -v unity-editor 2>/dev/null || echo /opt/unity/Editor/Unity)")")/Data"
 [ -d "$EDITOR_DATA" ] || EDITOR_DATA=/opt/unity/Editor/Data
-note "Editor data: $EDITOR_DATA ($(ls $EDITOR_DATA | tr '\n' ' ' | head -c 600))"
+echo "Editor data: $EDITOR_DATA"
 
 DOTNET="$(find "$EDITOR_DATA" -maxdepth 3 -type f -name dotnet | head -n1)"
 CSC="$(find "$EDITOR_DATA" -type f -name csc.dll -path '*Roslyn*' | head -n1)"
-note "dotnet=$DOTNET csc=$CSC"
+echo "dotnet=$DOTNET csc=$CSC"
 
 MANAGED="$EDITOR_DATA/Managed"
 NETSTD="$(find "$EDITOR_DATA/NetStandard" -type f -path '*ref/2.1.0/netstandard.dll' | head -n1)"
 UGUI="$(find "$EDITOR_DATA" -type d -path '*BuiltInPackages/com.unity.ugui' | head -n1)"
-note "netstandard=$NETSTD ugui=$UGUI"
+echo "netstandard=$NETSTD ugui=$UGUI"; [ -d "$UGUI/Runtime" ] || echo "::error title=RESULT ugui-layout::$(find "$UGUI" -maxdepth 2 | head -40 | tr '\n' ' ')"
 
 DEFINES="UNITY_6000_0_OR_NEWER;UNITY_2023_1_OR_NEWER;UNITY_2022_3_OR_NEWER;UNITY_2021_3_OR_NEWER;UNITY_2020_3_OR_NEWER;UNITY_2019_4_OR_NEWER;UNITY_5_6_OR_NEWER;UNITY_5_3_OR_NEWER;UNITY_64;UNITY_STANDALONE;UNITY_STANDALONE_LINUX;PLATFORM_STANDALONE;NET_STANDARD_2_0;NET_STANDARD_2_1;NET_STANDARD;CSHARP_7_3_OR_NEWER;ENABLE_UNITYEVENTS;ENABLE_LEGACY_INPUT_MANAGER;PACKAGE_PHYSICS2D;PACKAGE_PHYSICS;PACKAGE_ANIMATION;PACKAGE_TILEMAP"
 
@@ -46,8 +46,11 @@ compile() { # name defines refs-file sources-file
     -define:"$defines" -out:"$OUT/$name.dll" @"$refs" @"$srcs" > "$OUT/$name.log" 2>&1
   local rc=$?
   set -e
-  grep -E "error" "$OUT/$name.log" | sed "s#$PROJECT/##" | head -n 45 | while IFS= read -r l; do echo "::error title=$name::$l"; done
-  [ -s "$OUT/$name.log" ] && [ $rc -ne 0 ] && ! grep -q error "$OUT/$name.log" && echo "::error title=$name::$(head -c 800 "$OUT/$name.log" | tr '\n' ' ')"
+  if [ $rc -ne 0 ]; then
+    local body
+    body="$( (grep -E 'error' "$OUT/$name.log" || head -c 3000 "$OUT/$name.log") | sed "s#$PROJECT/##" | sort -u | head -n 60 | cut -c1-260 | sed ':a;N;$!ba;s/\n/%0A/g')"
+    echo "::error title=RESULT $name rc=$rc::$body"
+  fi
   echo "::endgroup::"
   if [ $rc -ne 0 ]; then note "FAILED: $name"; exit 1; fi
   echo "OK: $name"
